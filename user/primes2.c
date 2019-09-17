@@ -1,6 +1,14 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
+void redirect(int k, int pd[2])
+{
+	close(k);
+	dup(pd[k]);
+	close(pd[0]);
+	close(pd[1]);
+}
+
 void source()
 {
 	int i;
@@ -25,36 +33,31 @@ void cull(int p)
 	}
 }
 
-void redirect(int k, int pd[2])
+int sieve()
 {
-	close(k);
-	dup(pd[k]);
-	close(pd[0]);
-	close(pd[1]);
-}
-
-void sink()
-{
-	int pd[2];
 	int p;
-
-	// read 前会重定向
-	while (read(0, &p, sizeof(p)))
+	if (read(0, &p, sizeof(p)) == 0)
 	{
-		int pid = getpid();
-		printf("%d prime %d\n", pid, p);
-		pipe(pd);
-		if (fork())
-		{
-			redirect(0, pd);
-			continue;
-		}
-		else
-		{
-			redirect(1, pd);
-			cull(p);
-		}
+		exit();
 	}
+
+	int pid = getpid();
+	printf("%d prime %d\n", pid, p);
+
+	int pd[2];
+	pipe(pd);
+
+	if (fork())
+	{
+		redirect(0, pd);
+		sieve();
+	}
+	else
+	{
+		redirect(1, pd);
+		cull(p);
+	}
+	exit();
 }
 
 int main(int argc, char *argv[])
@@ -62,10 +65,10 @@ int main(int argc, char *argv[])
 	int pd[2];
 	pipe(pd);
 
-	if (fork())
+	if (fork() == 0)
 	{
 		redirect(0, pd);
-		sink();
+		sieve();
 	}
 	else
 	{
