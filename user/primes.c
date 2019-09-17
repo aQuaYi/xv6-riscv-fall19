@@ -1,55 +1,75 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
-int sieve(int fd)
+void source()
 {
-	int id = getpid();
-	printf("into %d\n", id);
-
-	int p;
-	if (read(fd, &p, sizeof(p)) == 0)
+	int i;
+	for (i = 2; i < 36; i++)
 	{
-		exit();
+		// write 前会重定向
+		write(1, &i, sizeof(i));
 	}
-	printf("prime %d\n", p);
+}
 
-	int next[2];
-	pipe(next);
-
-	if (fork() == 0)
+void cull(int p)
+{
+	int n;
+	// read 前会重定向
+	while (read(0, &n, sizeof(n)))
 	{
-		sieve(next[0]);
-	}
-	else
-	{
-		int n;
-		while (read(fd, &n, sizeof(n)) != 0)
+		if (n % p != 0)
 		{
-			if (n % p != 0)
-			{
-				write(next[1], &n, sizeof(n));
-			}
+			// write 前会重定向
+			write(1, &n, sizeof(n));
 		}
 	}
-	exit();
+}
+
+void redirect(int k, int pd[2])
+{
+	close(k);
+	dup(pd[k]);
+	close(pd[0]);
+	close(pd[1]);
+}
+
+void sink()
+{
+	int pd[2];
+	int p;
+
+	// read 前会重定向
+	while (read(0, &p, sizeof(p)))
+	{
+		printf("prime %d\n", p);
+		pipe(pd);
+		if (fork())
+		{
+			redirect(0, pd);
+			continue;
+		}
+		else
+		{
+			redirect(1, pd);
+			cull(p);
+		}
+	}
 }
 
 int main(int argc, char *argv[])
 {
-	int p[2];
-	pipe(p);
+	int pd[2];
+	pipe(pd);
 
-	if (fork() == 0)
+	if (fork())
 	{
-		sieve(p[0]);
+		redirect(0, pd);
+		sink();
 	}
 	else
 	{
-		for (int i = 2; i < 36; i++)
-		{
-			write(p[1], &i, sizeof(i));
-			printf("w: %d\n", i);
-		}
+		redirect(1, pd);
+		source();
 	}
 	exit();
 }
