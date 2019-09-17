@@ -1,22 +1,24 @@
 #include "kernel/types.h"
-#include "kernel/stat.h"
 #include "user/user.h"
 
 int main(int argc, char *argv[])
 {
-	int i;
-
-	for (i = 1; i < argc; i++)
+	if (argc < 2)
 	{
-		write(1, argv[i], strlen(argv[i]));
-		if (i + 1 < argc)
-		{
-			write(1, " ", 1);
-		}
-		else
-		{
-			write(1, "\n", 1);
-		}
+		fprintf(2, "USAGE: sleep seconds\n", 20);
+		exit();
 	}
+
+	int sec;
+	sec = atoi(argv[1]);
+	if (sec > 0)
+	{
+		sleep(sec);
+	}
+	else
+	{
+		fprintf(2, "Invalid interval: %s\n", argv[1]);
+	}
+
 	exit();
 }
