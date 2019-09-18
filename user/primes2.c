@@ -1,7 +1,7 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
-void redirect(int k, int pd[2])
+void redirect(int k, int pd[])
 {
 	close(k);
 	dup(pd[k]);
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	int pd[2];
 	pipe(pd);
 
-	if (fork() == 0)
+	if (fork())
 	{
 		redirect(0, pd);
 		sieve();

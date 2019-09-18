@@ -25,7 +25,7 @@ void cull(int p)
 	}
 }
 
-void redirect(int k, int pd[2])
+void redirect(int k, int pd[])
 {
 	close(k);
 	dup(pd[k]);
@@ -35,6 +35,9 @@ void redirect(int k, int pd[2])
 
 void sink()
 {
+	int pid = getpid();
+	printf("sink is %d\n", pid);
+
 	int pd[2];
 	int p;
 
@@ -46,11 +49,13 @@ void sink()
 		pipe(pd);
 		if (fork())
 		{
+			// this is parent
 			redirect(0, pd);
 			continue;
 		}
 		else
 		{
+			// this is child
 			redirect(1, pd);
 			cull(p);
 		}
@@ -59,18 +64,26 @@ void sink()
 
 int main(int argc, char *argv[])
 {
+	int pid = getpid();
+	printf("main is %d\n", pid);
+
 	int pd[2];
 	pipe(pd);
 
 	if (fork())
 	{
+		// this is parent
 		redirect(0, pd);
 		sink();
 	}
 	else
 	{
+		// this is child
 		redirect(1, pd);
 		source();
 	}
+
+	// pid = getpid();
+	// printf("%d done\n", pid);
 	exit();
 }
