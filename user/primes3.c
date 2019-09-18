@@ -36,6 +36,9 @@ int sieve(int from)
 	int pd[2];
 	pipe(pd);
 
+	// NOTICE: 可以看到，如果不重定向的话，pipe 的端口会溢出。
+	printf("\t\t\tpipe: %d %d\n", pd[0], pd[1]);
+
 	if (fork())
 	{
 		sieve(pd[0]);
