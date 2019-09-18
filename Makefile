@@ -145,6 +145,7 @@ UPROGS=\
 	$U/_primes\
 	$U/_primes2\
 	$U/_primes3\
+	$U/_find\
 
 fs.img: mkfs/mkfs README user/xargstest.sh $(UPROGS)
 	mkfs/mkfs fs.img README user/xargstest.sh $(UPROGS)
